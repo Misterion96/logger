@@ -1,0 +1,32 @@
+{
+  "name": "@dolgikh-maks/logger",
+  "version": "1.0.1",
+  "private": false,
+  "author": {
+    "name": "Maks Dolgikh",
+    "url": "https://www.linkedin.com/in/max-dolgikh/"
+  },
+  "keywords": ["console", "debug", "nodejs", "console.log", "browser log"],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "url": "git+https://github.com/Misterion96/logger.git"
+  },
+  "scripts": {
+    "test": "vitest --run",
+    "build": "tsc --p ./tsconfig.lib.json"
+  },
+  "devDependencies": {
+    "@dolgikh-maks/tsconfig": "1.0.0",
+    "@types/node": "22.13.14",
+    "ts-node": "10.9.2",
+    "typescript": "5.8.3",
+    "vitest": "4.0.2"
+  }
+}
