@@ -1,3 +1,8 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
+
 export function isNode(): boolean {
   return typeof process !== 'undefined' && !!(process.versions && process.versions.node);
 }
@@ -31,6 +36,7 @@ export default function createLogger(options: Options) {
    * @param message The message.
    * @param args other args
    */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   function debug(message: string, ...args: any[]) {
     if (debugEnabled) {
       console.log(`⚪ ${scope}: ${message}`, ...args);
@@ -42,6 +48,7 @@ export default function createLogger(options: Options) {
    * @param message The message.
    * @param args other args
    */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   function info(message: string, ...args: any[]) {
     console.log(`🔵 ${scope}: ${message}`, ...args);
   }
@@ -51,6 +58,7 @@ export default function createLogger(options: Options) {
    * @param message The message.
    * @param args other args
    */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   function success(message: string, ...args: any[]) {
     console.log(`🟢 ${scope}: ${message}`, ...args);
   }
@@ -60,6 +68,7 @@ export default function createLogger(options: Options) {
    * @param message The message.
    * @param args other args
    */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   function warn(message: string, ...args: any[]) {
     console.log(`🟡 ${scope}: ${message}`, ...args);
   }
@@ -69,6 +78,7 @@ export default function createLogger(options: Options) {
    * @param message The message.
    * @param args other args
    */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   function error(message: string, ...args: any[]) {
     console.log(`🔴 ${scope}: ${message}`, ...args);
   }
@@ -78,6 +88,7 @@ export default function createLogger(options: Options) {
 
     const getMs = () => {
       const end = getNow()
+
       return Math.round(end - start);
     }
 
@@ -88,7 +99,7 @@ export default function createLogger(options: Options) {
 
         return res;
       },
-      (err) => {
+      (err: unknown) => {
         console.error(`🔴 ${scope}: ${comment} (${getMs()}ms)`);
 
         throw err;

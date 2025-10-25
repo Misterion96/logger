@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import createLogger from './index';
 
 describe('createLogger', () => {
@@ -13,7 +14,8 @@ describe('createLogger', () => {
   })
 
   describe('common functions', () => {
-    let consoleLogSpy: any
+    // @ts-expect-error: didnt find 'log'
+    let consoleLogSpy: ReturnType<typeof vi.spyOn<typeof console, 'log'>>
 
     beforeEach(() => {
       vi.useFakeTimers();
@@ -100,7 +102,14 @@ describe('createLogger', () => {
     });
 
     describe('node environment', () => {
-      let writeSpy: any
+      // @ts-expect-error: didnt find 'write'
+      let writeSpy: ReturnType<typeof vi.spyOn<typeof process.stdout, 'write'>>
+
+      const originalIsTTY = process.stdout.isTTY;
+
+      afterEach(() => {
+        Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY });
+      });
 
       beforeEach(() => {
         vi.stubGlobal('process', {
@@ -136,7 +145,7 @@ describe('createLogger', () => {
       });
 
       it('should show spinner and error message for rejected promise', async () => {
-        const promise = Promise.reject('fail');
+        const promise = Promise.reject(new Error('fail'));
         const loadingPromise = logger.loading('doing work', promise)
 
         const COUNTER = 4;
@@ -151,7 +160,7 @@ describe('createLogger', () => {
       });
 
       it('should skip animation when not TTY', async () => {
-        (global as any).process.stdout.isTTY = false;
+        Object.defineProperty(process.stdout, 'isTTY', { value: false });
         const promise = Promise.resolve('ok');
 
         await logger.loading('simple', promise);
@@ -161,8 +170,8 @@ describe('createLogger', () => {
       });
 
       it('should skip animation when not TTY', async () => {
-        (global as any).process.stdout.isTTY = false;
-        const promise = Promise.reject('fail')
+        Object.defineProperty(process.stdout, 'isTTY', { value: false });
+        const promise = Promise.reject(new Error('fail'))
 
         await logger.loading('simple', promise).catch(() => {});
 
