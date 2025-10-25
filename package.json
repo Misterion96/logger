@@ -2,6 +2,7 @@
   "name": "@dolgikh-maks/logger",
   "version": "1.0.1",
   "private": false,
+  "description": "A simple, cross-platform logger with support for debug, info, warning, success, error messages, and Promise loading indicators. Works in both Node.js and browser environments",
   "author": {
     "name": "Maks Dolgikh",
     "url": "https://www.linkedin.com/in/max-dolgikh/"
