@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "files": ["index.ts"],
+  "files": ["src/index.ts"],
   "exclude": ["dist", "node_modules", "**/*.spec.ts"],
   "compilerOptions": {
     "skipLibCheck": true,

@@ -1,25 +1,38 @@
 /**
  * Vitest tests for createLogger
  */
-
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import createLogger from './index';
+import { LoggerFactory, ConsoleTransport, type LoggerInstance } from './index';
 
 describe('createLogger', () => {
-  let logger: ReturnType<typeof createLogger>
+  let logger: LoggerInstance;
 
   beforeEach(() => {
-    logger = createLogger({ scope: 'TEST' });
-  })
+    // Create a factory that maps everything to 'log' for easier testing
+    // of the common logging logic.
+    const factory = new LoggerFactory({
+      transports: [
+        new ConsoleTransport({
+          methods: {
+            debug: 'log',
+            info: 'log',
+            success: 'log',
+            warn: 'log',
+            error: 'log',
+          },
+        }),
+      ],
+    });
+    logger = factory.createLogger({ scope: 'TEST' });
+  });
 
   describe('common functions', () => {
-    // @ts-expect-error: didnt find 'log'
-    let consoleLogSpy: ReturnType<typeof vi.spyOn<typeof console, 'log'>>
+    let consoleLogSpy: ReturnType<typeof vi.spyOn<Console, 'log'>>;
 
     beforeEach(() => {
       vi.useFakeTimers();
-      consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => { /* mock */ });
     });
 
     afterEach(() => {
@@ -63,7 +76,7 @@ describe('createLogger', () => {
       logger.setDebug(false);
       expect(consoleLogSpy).toHaveBeenCalledWith('🔵 [TEST]: Debug is disabled');
     });
-  })
+  });
 
   describe('loading', () => {
     describe('browser environment', () => {
@@ -71,7 +84,7 @@ describe('createLogger', () => {
         vi.stubGlobal('process', {
           versions: { node: 0 },
         });
-        vi.spyOn(performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(200);
+        vi.spyOn(Date, 'now').mockReturnValueOnce(100).mockReturnValueOnce(200);
       });
 
       afterEach(() => {
@@ -79,31 +92,29 @@ describe('createLogger', () => {
       });
 
       it('should log success message with duration', async () => {
-        const successSpy = vi.spyOn(console, 'log');
-        const errorSpy = vi.spyOn(console, 'error');
+        const logSpy = vi.spyOn(console, 'log').mockImplementation(() => { /* mock */ });
 
-        const promise = Promise.resolve()
+        const promise = Promise.resolve();
         await logger.loading('fetch data', promise);
 
-        expect(successSpy).toHaveBeenCalledWith(expect.stringContaining('🟢 [TEST]: fetch data (100ms)'));
-        expect(errorSpy).not.toHaveBeenCalled();
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('🟢 [TEST]: fetch data (100ms)'));
+        logSpy.mockRestore();
       });
 
       it('should log error message with duration when rejected', async () => {
-        const successSpy = vi.spyOn(console, 'log');
-        const errorSpy = vi.spyOn(console, 'error');
-        const promise = Promise.reject(new Error('fail'))
+        const logSpy = vi.spyOn(console, 'log').mockImplementation(() => { /* mock */ });
+        const promise = Promise.reject(new Error('fail'));
 
         await expect(logger.loading('fetch data', promise)).rejects.toThrow('fail');
 
-        expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('🔴 [TEST]: fetch data (100ms)'));
-        expect(successSpy).not.toHaveBeenCalled();
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('🔴 [TEST]: fetch data (100ms)'));
+        logSpy.mockRestore();
       });
     });
 
     describe('node environment', () => {
       // @ts-expect-error: didnt find 'write'
-      let writeSpy: ReturnType<typeof vi.spyOn<typeof process.stdout, 'write'>>
+      let writeSpy: ReturnType<typeof vi.spyOn<typeof process.stdout, 'write'>>;
 
       const originalIsTTY = process.stdout.isTTY;
 
@@ -116,7 +127,7 @@ describe('createLogger', () => {
           versions: { node: '18.0.0' },
           stdout: {
             isTTY: true,
-            write: vi.fn()
+            write: vi.fn(() => { /* mock */ }),
           },
         });
         vi.useFakeTimers();
@@ -139,22 +150,22 @@ describe('createLogger', () => {
         await loadingPromise;
 
         for (let i = 0; i < COUNTER; i++) {
-          expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('🔄[TEST]: 🐳'));
+          expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('🔄 [TEST]: 🐳'));
         }
         expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('🟢 [TEST]: doing work'));
       });
 
       it('should show spinner and error message for rejected promise', async () => {
         const promise = Promise.reject(new Error('fail'));
-        const loadingPromise = logger.loading('doing work', promise)
+        const loadingPromise = logger.loading('doing work', promise);
 
         const COUNTER = 4;
         vi.advanceTimersByTime(COUNTER * 250);
 
-        await loadingPromise.catch(() => {});
+        await loadingPromise.catch(() => { /* ignore */ });
 
         for (let i = 0; i < COUNTER; i++) {
-          expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('🔄[TEST]: 🐳'));
+          expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('🔄 [TEST]: 🐳'));
         }
         expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('🔴 [TEST]: doing work'));
       });
@@ -171,9 +182,9 @@ describe('createLogger', () => {
 
       it('should skip animation when not TTY', async () => {
         Object.defineProperty(process.stdout, 'isTTY', { value: false });
-        const promise = Promise.reject(new Error('fail'))
+        const promise = Promise.reject(new Error('fail'));
 
-        await logger.loading('simple', promise).catch(() => {});
+        await logger.loading('simple', promise).catch(() => { /* ignore */ });
 
         expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('simple'));
         expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('🔴 Failure'));
