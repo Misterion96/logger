@@ -1,4 +1,4 @@
-# Logger
+# Logger 🐳
 
 A simple, cross-platform logger with support for debug, info, warning, success, error messages, and Promise loading indicators. Works in both Node.js and browser environments.
 
@@ -16,198 +16,119 @@ yarn add @dolgikh-maks/logger
 
 ---
 
-## Philosophy of the instrument
-When creating `@dolgikh-maks/logger`, I was guided by the principles:
-- Minimalism: No configurations longer than 100 lines
-- Predictability: Consistent behavior everywhere
-- Performance: Zero overhead when debug is off
-- Developer Experience: Easy-to-read logs = faster problem detection
+## Quick Start
 
----
-
-## Key advantages
-1. Context isolation. Each module has its own scope, which eliminates confusion when components are running in parallel.
-2. Visual hierarchy. Colored indicators (🔵 `info`, 🟢 `success`, 🟡 `warning`, 🔴 `error`) allow you to instantly assess the situation.
-3. Flexible debugging. The `setDebug()` flag enables detailed logs only when needed, without cluttering production.
-4. Timers out of the box. The `loading()` method automatically measures the execution time of asynchronous operations, which is critical for optimization.
-5. Cross-platform compatibility. A unified API for browsers and Node.js. The terminal even has an animated spinner for long operations.
-
----
-## Usage
-
-### Importing
+The simplest way to start is using the default `createLogger` function.
 
 ```ts
 import createLogger from '@dolgikh-maks/logger';
 
 const logger = createLogger({ scope: 'MyApp' });
+
+logger.info('Application started');
+logger.success('Operation completed');
 ```
 
-* `scope` — a string to prefix all logs. Helps identify the module or feature producing the logs.
+---
+
+## Core Principles
+When creating `@dolgikh-maks/logger`, I was guided by these principles:
+- **Minimalism**: No configurations longer than 100 lines.
+- **Context Isolation**: Each module has its own scope to avoid confusion.
+- **Predictability**: Consistent behavior across Browser and Node.js.
+- **Zero-overhead**: Debug logs have zero impact when disabled.
 
 ---
 
 ## Methods
 
-### `setDebug(enabled: boolean)`
-
-Enables or disables debug messages.
-
-```ts
-logger.setDebug(true);
-logger.setDebug(false);
-```
-
-**Example Output**:
-
-```
-🔵 [MyApp]: Debug is enabled
-🔵 [MyApp]: Debug is disabled
-```
-
----
-
-### `debug(message: string, ...args: any[])`
-
-Logs a debug message **only if debugging is enabled**.
-
-```ts
-logger.setDebug(true);
-logger.debug('This is a debug message');
-```
-
-**Example Output**:
-
-```
-⚪ [MyApp]: This is a debug message
-```
-
----
-
 ### `info(message: string, ...args: any[])`
-
-Logs an informative message.
-
+Logs an informative message (prefix 🔵).
 ```ts
-logger.info('Application started');
+logger.info('Starting server...');
 ```
-
-**Example Output**:
-
-```
-🔵 [MyApp]: Application started
-```
-
----
 
 ### `success(message: string, ...args: any[])`
-
-Logs a success message.
-
+Logs a success message (prefix 🟢).
 ```ts
-logger.success('Data loaded successfully');
+logger.success('User authenticated');
 ```
-
-**Example Output**:
-
-```
-🟢 [MyApp]: Data loaded successfully
-```
-
----
 
 ### `warn(message: string, ...args: any[])`
-
-Logs a warning message.
-
+Logs a warning message (prefix 🟡).
 ```ts
-logger.warn('Deprecated API usage');
+logger.warn('Rate limit approaching');
 ```
-
-**Example Output**:
-
-```
-🟡 [MyApp]: Deprecated API usage
-```
-
----
 
 ### `error(message: string, ...args: any[])`
-
-Logs an error message.
-
+Logs an error message (prefix 🔴).
 ```ts
-logger.error('Failed to fetch data');
+logger.error('Database connection failed', error);
 ```
 
-**Example Output**:
-
+### `debug(message: string, ...args: any[])`
+Logs a debug message (prefix ⚪) **only if debugging is enabled**.
+```ts
+logger.debug('Internal state:', state);
 ```
-🔴 [MyApp]: Failed to fetch data
-```
 
----
+### `setDebug(enabled: boolean)`
+Enables or disables debug messages globally for the factory.
+```ts
+logger.setDebug(true);
+```
 
 ### `loading<T>(comment: string, promise: Promise<T>): Promise<T>`
-
-Shows a loading indicator while a Promise is pending. Automatically logs success or failure when the promise resolves or rejects. Works differently in Node.js and browser environments:
-
-* **Browser** — simple `console.log` with timing.
-* **Node.js** — animated spinner in terminal if TTY is available.
+Shows a loading indicator while a Promise is pending. 
+- **Browser**: Shows execution time in ms.
+- **Node.js**: Displays an animated spinner in TTY environments.
 
 ```ts
-const fetchData = new Promise((resolve) => setTimeout(() => resolve('Done'), 1000));
+const data = await logger.loading('Fetching data', api.getUsers());
+```
 
-logger.loading('Fetching data', fetchData).then(result => {
-  console.log(`Result: ${result}`);
+---
+
+## Advanced Usage
+
+### LoggerFactory
+For complex applications, use `LoggerFactory` to centralize configuration.
+
+```ts
+import { LoggerFactory, ConsoleTransport } from '@dolgikh-maks/logger';
+
+const factory = new LoggerFactory({
+  level: 'info',
+  useTimestamps: true,
+  transports: [
+    new ConsoleTransport({
+      methods: {
+        info: 'table', // Use console.table for info logs
+      }
+    })
+  ]
 });
+
+const logger = factory.createLogger({ scope: 'Database' });
 ```
 
-**Example Output (Browser)**:
-
-```
-🟢 [MyApp]: Fetching data (1002ms)
-Result: Done
-```
-
-**Example Output (Node.js)**:
-
-```
-🔄 [MyApp]🐳
-🔄 [MyApp]  🐳
-🔄 [MyApp]    🐳
-🔄 [MyApp]      🐳
-🟢 [MyApp]: Fetching data
-Result: Done
-```
-
----
-
-## Example Combined Usage
+### Custom Transports
+Implement the `Transport` interface to direct logs to external services (e.g., Sentry, File).
 
 ```ts
-const logger = createLogger({ scope: 'App' });
+import type { Transport, LogEntry } from '@dolgikh-maks/logger';
 
-logger.setDebug(true);
-logger.info('Starting application...');
-logger.debug('Debugging mode is on');
-
-const asyncTask = new Promise((resolve) => setTimeout(resolve, 2000));
-await logger.loading('Performing async task', asyncTask);
-
-logger.success('Application finished');
-```
-
-**Output (Node.js)**:
-
-```
-🔵 [App]: Starting application...
-⚪ [App]: Debugging mode is on
-🔄 [App] 🐳
-🔄 [App]   🐳
-🟢 [App]: Performing async task
-🟢 [App]: Application finished
+class MyTransport implements Transport {
+  send(entry: LogEntry) {
+    // entry.level, entry.scope, entry.message, entry.additionalData
+  }
+}
 ```
 
 ---
 
+## Documentation
+For more detailed information, check the `.docs` directory:
+- [Architecture & Principles](.docs/index.md)
+- [Full API Reference](.docs/api.md)
+- [Recipes & Best Practices](.docs/recipes.md)

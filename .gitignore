@@ -1,4 +1,7 @@
 node_modules
 .pnpm-store
 .idea
+_bmad-output
+_bmad
+.agent
 dist
