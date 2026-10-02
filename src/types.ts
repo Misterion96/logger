@@ -30,4 +30,7 @@ export interface LogEntry<T = unknown> {
 /**
  * Valid methods of the global console object that can be safely used for log output.
  */
-export type ConsoleMethod = Extract<keyof Console, 'log' | 'info' | 'warn' | 'error' | 'debug'>;
+export type ConsoleMethod = Extract<
+  keyof Console,
+  'log' | 'info' | 'warn' | 'error' | 'debug'
+>;

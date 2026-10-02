@@ -18,6 +18,10 @@ const DEFAULT_FACTORY = new LoggerFactory();
  * @param options Configuration options for the logger.
  * @returns A LoggerInstance.
  */
-export default function createLogger(options: { scope: string }): LoggerInstance {
+export default function createLogger(options: {
+  scope: string;
+}): LoggerInstance {
   return DEFAULT_FACTORY.createLogger(options);
 }
+
+export { createLogger };

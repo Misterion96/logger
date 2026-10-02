@@ -63,15 +63,19 @@ export class LoggerInstance {
    * as agreed in the refactoring plan.
    */
   public loading<T>(comment: string, promise: Promise<T>): Promise<T> {
-    return this.isNode() 
-      ? this.nodeLoading(comment, promise) 
+    return this.isNode()
+      ? this.nodeLoading(comment, promise)
       : this.browserLoading(comment, promise);
   }
 
-  private emit(level: LogLevel, message: string, additionalData: unknown[]): void {
+  private emit(
+    level: LogLevel,
+    message: string,
+    additionalData: unknown[],
+  ): void {
     const settings = this.provider.getSettings();
     const isDebugOverride = level === 'debug' && settings.debugEnabled;
-    
+
     if (isDebugOverride || this.shouldLog(level, settings.level)) {
       const entry: LogEntry = {
         level,
@@ -86,10 +90,17 @@ export class LoggerInstance {
   }
 
   private shouldLog(level: LogLevel, minimumLevel: LogLevel): boolean {
-    const levels: LogLevel[] = ['debug', 'info', 'success', 'warn', 'error', 'none'];
+    const levels: LogLevel[] = [
+      'debug',
+      'info',
+      'success',
+      'warn',
+      'error',
+      'none',
+    ];
     const currentPriority = levels.indexOf(level);
     const minimumPriority = levels.indexOf(minimumLevel);
-    
+
     return currentPriority >= minimumPriority;
   }
 
@@ -129,7 +140,9 @@ export class LoggerInstance {
 
     let symbolIndex = 0;
     const interval = setInterval(() => {
-      process.stdout.write(`\r🔄 [${this.scope}]: ${LOADING_SYMBOLS[symbolIndex]}`);
+      process.stdout.write(
+        `\r🔄 [${this.scope}]: ${LOADING_SYMBOLS[symbolIndex]}`,
+      );
       symbolIndex = (symbolIndex + 1) % LOADING_SYMBOLS.length;
     }, PROGRESS_TIMEOUT_MILLISECONDS);
 

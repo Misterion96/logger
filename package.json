@@ -1,6 +1,6 @@
 {
   "name": "@dolgikh-maks/logger",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": false,
   "description": "A simple, cross-platform logger with support for debug, info, warning, success, error messages, and Promise loading indicators. Works in both Node.js and browser environments",
   "keywords": [
@@ -10,7 +10,6 @@
     "console.log",
     "browser log"
   ],
-
   "repository": {
     "url": "git+https://github.com/Misterion96/logger.git",
     "type": "git"
@@ -20,24 +19,43 @@
     "name": "Maks Dolgikh",
     "url": "https://www.linkedin.com/in/max-dolgikh/"
   },
+  "sideEffects": false,
   "type": "module",
-  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
   ],
   "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write ./src",
     "test": "vitest --run",
-    "build": "tsc --p ./tsconfig.lib.json"
+    "build": "tsup"
   },
   "devDependencies": {
     "@dolgikh-maks/eslint-config": "1.0.1",
     "@dolgikh-maks/tsconfig": "1.0.0",
     "@types/node": "22.13.14",
     "eslint": "9.38.0",
+    "prettier": "3.9.9",
     "ts-node": "10.9.2",
+    "tsup": "8.5.1",
     "typescript": "5.8.3",
-    "vitest": "4.0.2"
+    "vitest": "4.0.18"
   }
 }

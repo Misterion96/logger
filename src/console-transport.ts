@@ -62,7 +62,9 @@ export class ConsoleTransport implements Transport {
     // console[method] might be table, log, info, warn, error, debug
     // We cast it slightly here because of the dynamic nature of console methods,
     // but the ConsoleMethod type ensures it's a valid key.
-    const consoleFunction = (console[method] as (...argumentsList: unknown[]) => void).bind(console);
+    const consoleFunction = (
+      console[method] as (...argumentsList: unknown[]) => void
+    ).bind(console);
 
     consoleFunction(prefix, ...entry.additionalData);
   }
@@ -84,9 +86,13 @@ export class ConsoleTransport implements Transport {
    * @returns The formatted prefix string.
    */
   private formatPrefix(entry: LogEntry): string {
-    const emoji = this.options.useEmojis ? `${DEFAULT_EMOJIS[entry.level]} ` : '';
-    const timestamp = entry.timestamp ? `[${new Date(entry.timestamp).toISOString()}] ` : '';
-    
+    const emoji = this.options.useEmojis
+      ? `${DEFAULT_EMOJIS[entry.level]} `
+      : '';
+    const timestamp = entry.timestamp
+      ? `[${new Date(entry.timestamp).toISOString()}] `
+      : '';
+
     return `${timestamp}${emoji}[${entry.scope}]: ${entry.message}`;
   }
 }
